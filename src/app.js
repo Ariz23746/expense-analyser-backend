@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import userRouter from "./routers/user.router.js";
+
 const app = express();
 
 // setting cors to allow communication
@@ -31,5 +33,7 @@ app.use(express.static("public"));
 
 // allowing express to access user cookies
 app.use(cookieParser());
+
+app.use("/api/v1/users", userRouter);
 
 export { app };
