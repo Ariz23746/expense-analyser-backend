@@ -20,7 +20,7 @@ userRouter.route("/login").post(loginUser);
 userRouter.route("/logout").get(verifyJWT, logoutUser);
 userRouter
   .route("/edit-profile")
-  .post(verifyJWT, multerMiddlewareUpload.single("avatar"), editProfile);
+  .patch(verifyJWT, multerMiddlewareUpload.single("avatar"), editProfile);
 
 userRouter.route("/change-password").post(verifyJWT, changePassword);
 export default userRouter;
