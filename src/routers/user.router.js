@@ -1,5 +1,7 @@
 import express from "express";
 import {
+  changePassword,
+  editProfile,
   loginUser,
   logoutUser,
   registerUser,
@@ -13,6 +15,12 @@ userRouter
   .route("/register")
   .post(multerMiddlewareUpload.single("avatar"), registerUser);
 userRouter.route("/login").post(loginUser);
-userRouter.route("/logout").get(verifyJWT, logoutUser);
 
+//protected routes
+userRouter.route("/logout").get(verifyJWT, logoutUser);
+userRouter
+  .route("/edit-profile")
+  .post(verifyJWT, multerMiddlewareUpload.single("avatar"), editProfile);
+
+userRouter.route("/change-password").post(verifyJWT, changePassword);
 export default userRouter;

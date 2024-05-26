@@ -27,6 +27,9 @@ export const verifyJWT = async (req, _, next) => {
     req.user = user;
     next();
   } catch (error) {
-    throw new ApiError(401, error?.message || "Invalid access token");
+    if (error.name === "TokenExpiredError") {
+      throw new ApiError(401, "Token has expired. Please login again.");
+    }
+    next(new ApiError(401, error?.message || "Invalid access token"));
   }
 };

@@ -163,4 +163,73 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "User is logged out successful"));
 });
 
-export { registerUser, loginUser, logoutUser };
+const editProfile = asyncHandler(async (req, res) => {
+  // grab the data from req.body and req.file
+  const { firstName, lastName } = req.body;
+  if (!firstName && !lastName && !(req.file && req.file.path)) {
+    throw new ApiError(400, "Bad Request");
+  }
+  // Uploading file on cloudinary
+  let avatarCloudinaryPath = "";
+  if (req.file && req.file.path) {
+    const avatarLocalPath = req.file.path;
+    const uploadResult = await uploadOnCloudinary(avatarLocalPath);
+    avatarCloudinaryPath = uploadResult?.url || "";
+  }
+
+  // updating db
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: {
+        firstName,
+        lastName,
+        ...(avatarCloudinaryPath ? { avatar: avatarCloudinaryPath } : {}),
+      },
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  ).select("-password -refreshToken");
+
+  // Will have access of user from req.user
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedUser, "successfully modified data"));
+});
+
+const changePassword = asyncHandler(async (req, res) => {
+  const { oldPassword, changedPassword } = req.body;
+  if (!oldPassword || !changedPassword) {
+    throw new ApiError(400, "Bad Request");
+  }
+
+  if (changedPassword === oldPassword) {
+    throw new ApiError(
+      400,
+      "The new password must be different from the current password. Please choose a different password."
+    );
+  }
+
+  // checking password is even changed or not
+  const currentUser = await User.findById(req.user._id);
+  const isValidPassword = await currentUser.isPasswordCorrect(oldPassword);
+
+  if (!isValidPassword) {
+    throw new ApiError(400, "Old password is not valid");
+  }
+
+  // saving new password for db
+  currentUser.password = changedPassword;
+
+  await currentUser.save({
+    validateBeforeSave: false,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password changed successfully"));
+});
+
+export { registerUser, loginUser, logoutUser, editProfile, changePassword };
