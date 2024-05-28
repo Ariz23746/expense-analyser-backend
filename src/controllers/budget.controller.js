@@ -1,12 +1,11 @@
 import mongoose from "mongoose";
-import {
-  budgetModelKey,
-  checkIfAllMandatoryFieldsExist,
-} from "../helpers/validators.js";
+import { checkIfAllMandatoryFieldsExist } from "../helpers/validators.js";
 import { Budget } from "../models/budget.models.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { budgetModelKey } from "../constants.js";
+import { getCurrentMonthAndYear } from "../utils/dateUtils.js";
 
 const generateFilterDateErrorMessage = (data) => {
   const { startMonth, startYear, endMonth, endYear } = data;
@@ -168,9 +167,8 @@ const getCurrentBudget = asyncHandler(async (req, res) => {
   }
 
   // Todays date
-  const currentDate = new Date();
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth() + 1; // getMonth() returns 0-11, so add 1
+  const { month, year } = getCurrentMonthAndYear();
+
   // Construct the query object
   const query = {
     ...(forGroup ? { groupId: entityId } : { userId: req.user._id }),

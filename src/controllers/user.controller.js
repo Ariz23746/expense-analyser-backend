@@ -2,11 +2,9 @@ import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { User } from "../models/user.models.js";
-import {
-  checkIfAllMandatoryFieldsExist,
-  userModelKey,
-} from "../helpers/validators.js";
+import { checkIfAllMandatoryFieldsExist } from "../helpers/validators.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { userModelKey } from "../constants.js";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {

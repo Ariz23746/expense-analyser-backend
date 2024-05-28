@@ -3,12 +3,10 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { Group } from "../models/group.models.js";
 import { GroupMember } from "../models/groupMember.models.js";
 import { ApiError } from "../utils/apiError.js";
-import {
-  checkIfAllMandatoryFieldsExist,
-  groupModelKey,
-} from "../helpers/validators.js";
+import { checkIfAllMandatoryFieldsExist } from "../helpers/validators.js";
 import mongoose from "mongoose";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { groupModelKey } from "../constants.js";
 
 const checkIfGroupExist = async (groupId) => {
   const groupInfo = await Group.findById(groupId);
