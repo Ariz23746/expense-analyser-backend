@@ -1,6 +1,16 @@
-import { USER_MANDATORY_FIELD } from "../constants.js";
+import {
+  USER_MANDATORY_FIELDS,
+  GROUP_MANDATORY_FIELDS,
+  BUDGET_MANDATORY_FIELDS,
+} from "../constants.js";
+
+export const userModelKey = "user";
+export const groupModelKey = "group";
+export const budgetModelKey = "budget";
 const modalNameMapper = {
-  user: USER_MANDATORY_FIELD,
+  user: USER_MANDATORY_FIELDS,
+  group: GROUP_MANDATORY_FIELDS,
+  budget: BUDGET_MANDATORY_FIELDS,
 };
 
 const checkIfAllMandatoryFieldsExist = (modalName, requestBodyObject) => {

@@ -9,18 +9,18 @@ import {
 import { multerMiddlewareUpload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
-const userRouter = express.Router();
+const userRoutes = express.Router();
 
-userRouter
+userRoutes
   .route("/register")
   .post(multerMiddlewareUpload.single("avatar"), registerUser);
-userRouter.route("/login").post(loginUser);
+userRoutes.route("/login").post(loginUser);
 
 //protected routes
-userRouter.route("/logout").get(verifyJWT, logoutUser);
-userRouter
+userRoutes.route("/logout").get(verifyJWT, logoutUser);
+userRoutes
   .route("/edit-profile")
   .patch(verifyJWT, multerMiddlewareUpload.single("avatar"), editProfile);
+userRoutes.route("/change-password").post(verifyJWT, changePassword);
 
-userRouter.route("/change-password").post(verifyJWT, changePassword);
-export default userRouter;
+export default userRoutes;

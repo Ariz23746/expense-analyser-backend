@@ -2,7 +2,10 @@ import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { User } from "../models/user.models.js";
-import { checkIfAllMandatoryFieldsExist } from "../helpers/userModalHelper.js";
+import {
+  checkIfAllMandatoryFieldsExist,
+  userModelKey,
+} from "../helpers/validators.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const generateAccessAndRefreshToken = async (userId) => {
@@ -29,7 +32,7 @@ const registerUser = asyncHandler(async (req, res) => {
   const { username, firstName, lastName, password, email, phone } = req.body;
 
   // Validation of data
-  const vadilator = checkIfAllMandatoryFieldsExist("user", req.body);
+  const vadilator = checkIfAllMandatoryFieldsExist(userModelKey, req.body);
 
   if (vadilator.length > 0) {
     throw new ApiError(

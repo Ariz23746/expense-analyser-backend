@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import userRouter from "./routers/user.router.js";
 
 const app = express();
 
@@ -34,6 +33,10 @@ app.use(express.static("public"));
 // allowing express to access user cookies
 app.use(cookieParser());
 
-app.use("/api/v1/users", userRouter);
-
+import userRoutes from "./routers/user.router.js";
+import groupRoutes from "./routers/group.router.js";
+import budgetRoutes from "./routers/budget.router.js";
+app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/groups", groupRoutes);
+app.use("/api/v1/budgets", budgetRoutes);
 export { app };

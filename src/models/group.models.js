@@ -13,6 +13,10 @@ const groupSchema = new Schema(
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: "User",
+      required: true,
+    },
+    avatar: {
+      type: String,
     },
   },
   { timestamps: true }

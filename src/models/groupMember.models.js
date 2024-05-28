@@ -6,6 +6,9 @@ const groupMemberSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Group",
     },
+    role: {
+      type: String,
+    },
     userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
