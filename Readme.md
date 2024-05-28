@@ -51,7 +51,7 @@ The Expense Analyser App is designed to help users track and manage their expens
 
 ### Group Members
 
-![group members icon](https://img.icons8.com/color/48/000000/users.png)
+![group members icon](https://img.icons8.com/?size=100&id=Ut1mhCuyFDJQ&format=png&color=000000)
 
 - **id** (string, pk)
 - **groupId** (string, pk)
@@ -61,7 +61,7 @@ The Expense Analyser App is designed to help users track and manage their expens
 
 ### Category
 
-![category icon](https://img.icons8.com/color/48/000000/category.png)
+![category icon](https://img.icons8.com/?size=100&id=CKtPhNMyI8bF&format=png&color=000000)
 
 - **id** (string, pk)
 - **userId** (string, pk)
@@ -71,7 +71,7 @@ The Expense Analyser App is designed to help users track and manage their expens
 
 ### Expense
 
-![expense icon](https://img.icons8.com/color/48/000000/category.png)
+![expense icon](https://img.icons8.com/?size=100&id=h3USDbkfsNWM&format=png&color=000000)
 
 - **id** (string, pk)
 - **categoryId** (string, pk)
@@ -86,7 +86,7 @@ The Expense Analyser App is designed to help users track and manage their expens
 
 ### Report
 
-![report icon](https://img.icons8.com/color/48/000000/report.png)
+![report icon](https://img.icons8.com/?size=100&id=dcpSluQunF5R&format=png&color=000000)
 
 - **id** (string, pk)
 - **categoryId** (string, pk)
@@ -99,7 +99,7 @@ The Expense Analyser App is designed to help users track and manage their expens
 
 ### Notification
 
-![notification icon](https://img.icons8.com/color/48/000000/bell.png)
+![notification icon](https://img.icons8.com/?size=100&id=q83D9p2dPS2W&format=png&color=000000)
 
 - **id** (string, pk)
 - **userId** (string, pk)
