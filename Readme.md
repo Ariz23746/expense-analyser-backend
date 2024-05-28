@@ -27,7 +27,7 @@ The Expense Analyser App is designed to help users track and manage their expens
 
 ### User
 
-![user icon](https://img.icons8.com/color/48/000000/user.png)
+![user icon](https://img.icons8.com/?size=100&id=RH2knxpdDpjm&format=png&color=000000)
 
 - **id** (string, pk)
 - **name** (string)
@@ -41,7 +41,7 @@ The Expense Analyser App is designed to help users track and manage their expens
 
 ### Group
 
-![group icon](https://img.icons8.com/color/48/000000/users.png)
+![group icon](https://img.icons8.com/?size=100&id=60tMLyTAWm4h&format=png&color=000000)
 
 - **id** (string, pk)
 - **name** (string)
