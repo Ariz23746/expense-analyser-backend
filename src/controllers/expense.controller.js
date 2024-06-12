@@ -17,7 +17,8 @@ const addExpense = asyncHandler(async (req, res) => {
         `${validator.length === 1 ? " is" : " are"} missing. Please fill all the mandatory fields`
     );
   }
-  const { categoryId, name, description, amount } = req.body;
+
+  const { categoryId, name, description, amount, date = "" } = req.body;
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -64,13 +65,25 @@ const addExpense = asyncHandler(async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
+    const responseExpense = {
+      userId: expense.userId,
+      categoryId: expense.categoryId,
+      name: expense.name,
+      description: expense.description,
+      amount: expense.amount,
+      month: expense.month,
+      year: expense.year,
+      createdAt: expense.createdAt,
+    };
+
     return res
       .status(201)
-      .json(new ApiResponse(201, expense, "Expense added successfully"));
+      .json(
+        new ApiResponse(201, responseExpense, "Expense added successfully")
+      );
   } catch (err) {
     await session.abortTransaction();
     session.endSession();
-    console.log("err", err);
     throw new ApiError(500, "Failed to add expense. Please try again.");
   }
 });
@@ -82,7 +95,33 @@ const getCategoryExpense = asyncHandler(async (req, res) => {
     month,
     year,
   };
-  const expenseCategoryWise = await Report.find(query);
+  const expenseCategoryWise = await Report.aggregate([
+    { $match: query },
+    {
+      $lookup: {
+        from: "categories", // Name of the Category model collection
+        localField: "categoryId",
+        foreignField: "_id",
+        as: "categoryDetails",
+      },
+    },
+    {
+      $unwind: "$categoryDetails", // Unwind to get individual category details
+    },
+    {
+      $project: {
+        _id: 0, // Exclude _id field
+        categoryName: "$categoryDetails.name",
+        categoryBudget: "$categoryDetails.categoryBudget",
+        isDark: "$categoryDetails.isDark",
+        color: "$categoryDetails.color",
+        categoryId: "$categoryDetails._id",
+        month: 1,
+        year: 1,
+        totalAmountSpent: 1,
+      },
+    },
+  ]);
   return res
     .status(200)
     .json(
@@ -106,7 +145,9 @@ const getExpense = asyncHandler(async (req, res) => {
 
   const expenses = await Expense.find(query)
     .skip(skip)
+    .sort({ createdAt: -1 })
     .limit(parseInt(limit))
+    .select("-_id -__v -updatedAt")
     .exec();
 
   return res

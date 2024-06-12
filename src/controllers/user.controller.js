@@ -91,17 +91,18 @@ const registerUser = asyncHandler(async (req, res) => {
 
 const loginUser = asyncHandler(async (req, res) => {
   // Debugging to see the request body
-
   // check if sufficient data is coming to log in user
-  const { phone, username, password } = req.body;
+  const { userId, password } = req.body;
 
-  if (!phone && !username) {
+  if (!userId) {
     throw new ApiError(400, "Username or phone is required");
   }
-
+  if (!password) {
+    throw new ApiError(400, "password is required");
+  }
   // finding User
   const user = await User.findOne({
-    $or: [{ username }, { phone }],
+    $or: [{ phone: userId }, { username: userId }],
   });
 
   if (!user) {
@@ -125,7 +126,7 @@ const loginUser = asyncHandler(async (req, res) => {
   };
 
   const modifiedUser = await User.findById(user?._id)?.select(
-    "-refreshToken -password"
+    "-refreshToken -password -__v"
   );
 
   res
@@ -137,6 +138,41 @@ const loginUser = asyncHandler(async (req, res) => {
         200,
         { user: modifiedUser, accessToken, refreshToken },
         "User is login successful"
+      )
+    );
+});
+
+const getNewToken = asyncHandler(async (req, res) => {
+  // check if sufficient data is coming to log in user
+  const { oldRefreshToken } = req.body;
+  if (!oldRefreshToken) {
+    throw new ApiError(400, "oldRefershToken is required");
+  }
+
+  // finding User
+  const user = await User.findOne({
+    refreshToken: oldRefreshToken,
+  });
+
+  if (!user) {
+    throw new ApiError(404, "User does not exist. Please sign up!");
+  }
+  // generate access and refresh token
+  const accessToken = user.generateAccessToken();
+  const optionForCookie = {
+    httpOnly: true,
+    secure: false,
+  };
+
+  res
+    .status(200)
+    .cookie("refreshToken", oldRefreshToken, optionForCookie)
+    .cookie("accessToken", accessToken, optionForCookie)
+    .json(
+      new ApiResponse(
+        200,
+        { accessToken, refreshToken: oldRefreshToken },
+        "New token generated successfully"
       )
     );
 });
@@ -166,10 +202,11 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 const editProfile = asyncHandler(async (req, res) => {
   // grab the data from req.body and req.file
-  const { firstName, lastName } = req.body;
-  if (!firstName && !lastName && !(req.file && req.file.path)) {
+  const { firstName, lastName, email } = req.body;
+  if (!firstName && !lastName && !email && !(req.file && req.file.path)) {
     throw new ApiError(400, "Bad Request");
   }
+
   // Uploading file on cloudinary
   let avatarCloudinaryPath = "";
   if (req.file && req.file.path) {
@@ -183,8 +220,9 @@ const editProfile = asyncHandler(async (req, res) => {
     req.user._id,
     {
       $set: {
-        firstName,
-        lastName,
+        ...(firstName ? { firstName } : {}),
+        ...(lastName ? { lastName } : {}),
+        ...(email ? { email } : {}),
         ...(avatarCloudinaryPath ? { avatar: avatarCloudinaryPath } : {}),
       },
     },
@@ -192,7 +230,7 @@ const editProfile = asyncHandler(async (req, res) => {
       new: true,
       runValidators: true,
     }
-  ).select("-password -refreshToken");
+  ).select("-password -refreshToken -__v");
 
   // Will have access of user from req.user
   return res
@@ -233,4 +271,11 @@ const changePassword = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Password changed successfully"));
 });
 
-export { registerUser, loginUser, logoutUser, editProfile, changePassword };
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  editProfile,
+  changePassword,
+  getNewToken,
+};

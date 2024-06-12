@@ -36,9 +36,14 @@ const createBudget = asyncHandler(async (req, res) => {
     );
   }
 
-  const budgetDate = new Date(date); // date = 2024-05-28
-  const month = budgetDate.getMonth() + 1; // getMonth() returns 0-11, so add 1
-  const year = budgetDate.getFullYear();
+  let { month, year } = getCurrentMonthAndYear();
+
+  if (date) {
+    const budgetDate = new Date(date); // date = 2024-05-28
+    month = budgetDate.getMonth() + 1; // getMonth() returns 0-11, so add 1
+    year = budgetDate.getFullYear();
+  }
+
   // check if budget is already created
   const budgetAlreadyExist = await Budget.findOne({
     ...(forGroup ? { groupId } : { userId }),
@@ -85,7 +90,7 @@ const getBudgets = asyncHandler(async (req, res) => {
 
   const {
     page = 1,
-    limit = 10,
+    limit = 6,
     startMonth,
     startYear,
     endMonth,
@@ -101,40 +106,45 @@ const getBudgets = asyncHandler(async (req, res) => {
   };
 
   // Apply date filters if provided
-  if (startMonth && startYear && endMonth && endYear) {
-    if (parseInt(startYear) === parseInt(endYear)) {
-      // Same year, check if start month is less than or equal to end month
-      if (parseInt(startMonth) <= parseInt(endMonth)) {
-        query.month = { $gte: parseInt(startMonth), $lte: parseInt(endMonth) };
-        query.year = parseInt(startYear);
+  if (startMonth || startYear || endMonth || endYear) {
+    if (startMonth && startYear && endMonth && endYear) {
+      if (parseInt(startYear) === parseInt(endYear)) {
+        // Same year, check if start month is less than or equal to end month
+        if (parseInt(startMonth) <= parseInt(endMonth)) {
+          query.month = {
+            $gte: parseInt(startMonth),
+            $lte: parseInt(endMonth),
+          };
+          query.year = parseInt(startYear);
+        } else {
+          throw new ApiError(
+            400,
+            "Invalid date range. Start Month cannot be greater than endMonth"
+          );
+        }
+      } else if (parseInt(startYear) < parseInt(endYear)) {
+        // Different years, query from start to end year inclusively
+        query.$or = [
+          {
+            $and: [
+              { year: parseInt(startYear) },
+              { month: { $gte: parseInt(startMonth) } },
+            ],
+          },
+          {
+            $and: [
+              { year: parseInt(endYear) },
+              { month: { $lte: parseInt(endMonth) } },
+            ],
+          },
+        ];
       } else {
-        throw new ApiError(
-          400,
-          "Invalid date range. Start Month cannot be greater than endMonth"
-        );
+        // Start year is greater than end year
+        // Invalid date range, handle error or return empty result
       }
-    } else if (parseInt(startYear) < parseInt(endYear)) {
-      // Different years, query from start to end year inclusively
-      query.$or = [
-        {
-          $and: [
-            { year: parseInt(startYear) },
-            { month: { $gte: parseInt(startMonth) } },
-          ],
-        },
-        {
-          $and: [
-            { year: parseInt(endYear) },
-            { month: { $lte: parseInt(endMonth) } },
-          ],
-        },
-      ];
     } else {
-      // Start year is greater than end year
-      // Invalid date range, handle error or return empty result
+      throw new ApiError(400, generateFilterDateErrorMessage(req.body));
     }
-  } else {
-    throw new ApiError(400, generateFilterDateErrorMessage(req.body));
   }
 
   // Find budgets with pagination and sort by date (latest first)
@@ -142,6 +152,7 @@ const getBudgets = asyncHandler(async (req, res) => {
     .sort({ year: -1, month: -1 }) // Sort by year and month in descending order
     .skip(skip)
     .limit(parseInt(limit))
+    .select("-createdAt -updatedAt -__v -_id")
     .exec();
   // Get the total count for pagination info
   const totalCount = await Budget.countDocuments(query);

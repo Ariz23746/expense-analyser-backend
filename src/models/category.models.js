@@ -16,6 +16,22 @@ const categorySchema = new Schema(
       type: Number,
       required: true,
     },
+    color: {
+      type: String,
+      required: true,
+    },
+    isDark: {
+      type: Boolean,
+      required: true,
+    },
+    month: {
+      type: Number,
+      required: true,
+    },
+    year: {
+      type: Number,
+      required: true,
+    },
   },
   { timestamps: true }
 );

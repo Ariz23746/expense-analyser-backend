@@ -15,17 +15,19 @@ const expenseSchema = new Schema(
     },
     name: {
       type: String,
-      unique: true,
       trim: true,
       lowercase: true,
-      index: true,
     },
+
     description: {
       type: String,
     },
     amount: {
       type: Number,
       required: true,
+    },
+    date: {
+      type: Number,
     },
     month: {
       type: Number,

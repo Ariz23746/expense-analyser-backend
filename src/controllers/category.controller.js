@@ -7,6 +7,8 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { Report } from "../models/report.models.js";
 import { getCurrentMonthAndYear } from "../utils/dateUtils.js";
+import { getRandomColorObject } from "../utils/randomColorPicker.js";
+import { Budget } from "../models/budget.models.js";
 
 const createCategory = asyncHandler(async (req, res) => {
   const vadilator = checkIfAllMandatoryFieldsExist(categoryModelKey, req.body);
@@ -19,6 +21,38 @@ const createCategory = asyncHandler(async (req, res) => {
   }
 
   const { name, categoryBudget } = req.body;
+
+  const { month, year } = getCurrentMonthAndYear();
+  // checking if categoryBudget is greater than total budget
+
+  const userBudget = await Budget.findOne({
+    userId: req.user._id,
+    month,
+    year,
+  });
+
+  if (!userBudget) {
+    throw new ApiError(400, `budget doesnot exist for this user`);
+  }
+
+  // Calculate the total of all existing category budgets for the current month and year
+  const categories = await Category.find({
+    userId: req.user._id,
+    month,
+    year,
+  });
+
+  const totalCategoryBudget = categories.reduce(
+    (acc, category) => acc + category.categoryBudget,
+    0
+  );
+
+  if (userBudget?.amount < totalCategoryBudget + parseInt(categoryBudget)) {
+    throw new ApiError(
+      400,
+      `Total category amount exceeding your total budget.`
+    );
+  }
 
   // checking if category is already created with the categoryName
   const alreadyCategory = await Category.findOne({
@@ -33,6 +67,7 @@ const createCategory = asyncHandler(async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
+  const { color, isDark } = getRandomColorObject();
   try {
     // create category
     const rawCategory = await Category.create(
@@ -41,6 +76,10 @@ const createCategory = asyncHandler(async (req, res) => {
           name,
           categoryBudget,
           userId: req.user._id,
+          color,
+          isDark,
+          month,
+          year,
         },
       ],
       { session }
@@ -53,7 +92,6 @@ const createCategory = asyncHandler(async (req, res) => {
       throw new ApiError(500, "Something went wrong while creating category.");
     }
 
-    const { month, year } = getCurrentMonthAndYear();
     await Report.create(
       [
         {
@@ -76,9 +114,29 @@ const createCategory = asyncHandler(async (req, res) => {
   } catch (err) {
     await session.abortTransaction();
     session.endSession();
-    console.log("err", err);
     throw new ApiError(500, "Failed to create category. Please try again.");
   }
 });
 
-export { createCategory };
+const fetchUserCategory = asyncHandler(async (req, res) => {
+  const { month, year } = getCurrentMonthAndYear();
+  const query = {
+    userId: req.user._id,
+    month,
+    year,
+  };
+  const categories = await Category.find(query);
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        categories,
+        categories.length
+          ? "Categories fetched successfully!"
+          : "Please create categories first"
+      )
+    );
+});
+
+export { createCategory, fetchUserCategory };
